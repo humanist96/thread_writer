@@ -9,11 +9,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 })
   }
 
+  // Check if YouTube API key is available
+  if (!process.env.YOUTUBE_API_KEY) {
+    console.error('YOUTUBE_API_KEY is not configured')
+    return NextResponse.json({ error: 'YouTube API key is not configured' }, { status: 500 })
+  }
+
   try {
     const videos = await searchYouTube(query)
     return NextResponse.json({ videos })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Search API error:', error)
-    return NextResponse.json({ error: 'Failed to search videos' }, { status: 500 })
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    })
+    return NextResponse.json({ 
+      error: 'Failed to search videos',
+      details: error.response?.data?.error?.message || error.message
+    }, { status: 500 })
   }
 }

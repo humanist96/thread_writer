@@ -15,6 +15,13 @@ export interface YouTubeVideo {
 }
 
 export async function searchYouTube(query: string, maxResults: number = 12): Promise<YouTubeVideo[]> {
+  if (!YOUTUBE_API_KEY) {
+    throw new Error('YouTube API key is not configured')
+  }
+
+  console.log('Searching YouTube with query:', query)
+  console.log('Using API key:', YOUTUBE_API_KEY ? 'Present' : 'Missing')
+
   try {
     const searchResponse = await axios.get(`${YOUTUBE_API_BASE_URL}/search`, {
       params: {
