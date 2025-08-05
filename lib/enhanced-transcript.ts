@@ -25,9 +25,7 @@ export class EnhancedTranscriptExtractor {
       cacheEnabled: true,
       cacheTTL: 3600000, // 1 hour
       preferredMethods: [
-        TranscriptMethod.INNERTUBE,
         TranscriptMethod.YOUTUBE_TRANSCRIPT,
-        TranscriptMethod.YT_DLP,
         TranscriptMethod.YOUTUBE_API
       ],
       fallbackToManual: true,
@@ -179,14 +177,18 @@ export class EnhancedTranscriptExtractor {
 
       switch (method) {
         case TranscriptMethod.INNERTUBE:
+          // Skip Innertube in Vercel environment
+          if (process.env.VERCEL) {
+            throw new Error('Innertube is not supported in Vercel environment')
+          }
           result = await this.extractWithInnertube(videoId, options)
           break
         case TranscriptMethod.YOUTUBE_TRANSCRIPT:
           result = await this.extractWithYoutubeTranscript(videoId, options)
           break
         case TranscriptMethod.YT_DLP:
-          result = await this.extractWithYtDlp(videoId, options)
-          break
+          // Skip YT-DLP as it's not available
+          throw new Error('YT-DLP is not available in this environment')
         case TranscriptMethod.YOUTUBE_API:
           result = await this.extractWithYoutubeAPI(videoId, options)
           break
@@ -259,30 +261,49 @@ export class EnhancedTranscriptExtractor {
   ): Promise<TranscriptResult> {
     console.log(`[YouTubeTranscript] Starting extraction for ${videoId}`)
 
-    const transcriptData = await YoutubeTranscript.fetchTranscript(videoId)
-    
-    if (!transcriptData || transcriptData.length === 0) {
-      throw new Error('No transcript data available')
-    }
+    try {
+      const transcriptData = await YoutubeTranscript.fetchTranscript(videoId, {
+        lang: options.preferredLanguages?.[0] || 'en',
+      })
+      
+      if (!transcriptData || transcriptData.length === 0) {
+        throw new Error('No transcript data available')
+      }
 
-    const transcript = transcriptData
-      .map((entry: any) => entry.text)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim()
+      const transcript = transcriptData
+        .map((entry: any) => entry.text || '')
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim()
 
-    if (!transcript) {
-      throw new Error('Empty transcript after processing')
-    }
+      if (!transcript) {
+        throw new Error('Empty transcript after processing')
+      }
 
-    const isKorean = this.detectKorean(transcript)
+      const isKorean = this.detectKorean(transcript)
 
-    return {
-      success: true,
-      transcript: this.sanitizeTranscript(transcript),
-      method: TranscriptMethod.YOUTUBE_TRANSCRIPT,
-      responseTime: 0,
-      isKorean
+      return {
+        success: true,
+        transcript: this.sanitizeTranscript(transcript),
+        method: TranscriptMethod.YOUTUBE_TRANSCRIPT,
+        responseTime: 0,
+        isKorean
+      }
+    } catch (error: any) {
+      console.error(`[YouTubeTranscript] Error:`, error.message)
+      
+      // Common error patterns
+      if (error.message?.includes('Could not find')) {
+        throw new Error('No captions available for this video')
+      }
+      if (error.message?.includes('Transcript is disabled')) {
+        throw new Error('Transcript is disabled for this video')
+      }
+      if (error.message?.includes('Video unavailable')) {
+        throw new Error('Video is unavailable or private')
+      }
+      
+      throw error
     }
   }
 
