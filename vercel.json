@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "regions": ["icn1"],
+  "functions": {
+    "app/api/transcript/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/generate-thread/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
