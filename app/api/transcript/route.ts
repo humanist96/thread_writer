@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { getYouTubeTranscript } from '@/lib/transcript'
 import { getSimpleTranscript } from '@/lib/simple-transcript'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const { videoId } = await request.json()
@@ -46,4 +49,8 @@ export async function POST(request: Request) {
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
   }
+}
+
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, { status: 200 })
 }

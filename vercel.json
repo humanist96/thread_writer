@@ -4,6 +4,10 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "regions": ["icn1"],
+  "public": true,
+  "github": {
+    "enabled": false
+  },
   "functions": {
     "app/api/transcript/route.ts": {
       "maxDuration": 60
@@ -32,12 +36,6 @@
           "value": "Content-Type, Authorization"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
     }
   ]
 }
