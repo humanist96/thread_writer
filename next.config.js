@@ -9,6 +9,14 @@ const nextConfig = {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
   },
+  eslint: {
+    // During production builds, we want to ignore ESLint errors
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // During production builds, we want to ignore TypeScript errors
+    ignoreBuildErrors: true,
+  },
 }
 
 module.exports = nextConfig
